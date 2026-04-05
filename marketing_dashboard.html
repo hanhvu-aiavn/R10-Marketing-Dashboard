@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marketing Performance Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{--navy:#0f172a;--navy2:#1e293b;--blue:#3b82f6;--green:#22c55e;--amber:#f59e0b;--purple:#a855f7;--red:#ef4444;--muted:#64748b;--border:#e2e8f0;--bg:#f8fafc;--white:#fff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--navy)}
+header{background:var(--navy);color:#fff;padding:18px 32px;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:1.3rem;font-weight:700}
+.header-sub{font-size:0.78rem;opacity:.7;margin-top:4px}
+nav{background:var(--navy2);display:flex;gap:2px;padding:0 32px;position:sticky;top:0;z-index:100;overflow-x:auto}
+nav a{color:#94a3b8;text-decoration:none;padding:11px 15px;font-size:0.82rem;font-weight:500;white-space:nowrap;transition:color .2s;border-bottom:2px solid transparent}
+nav a:hover{color:#fff;border-bottom-color:var(--blue)}
+main{max-width:1280px;margin:0 auto;padding:28px 20px}
+section{margin-bottom:48px}
+h2{font-size:1.15rem;font-weight:700;padding-left:12px;border-left:4px solid var(--blue);margin-bottom:18px;color:var(--navy)}
+h3{font-size:0.9rem;font-weight:600;color:var(--muted);margin:18px 0 10px}
+.period-tag{font-size:0.75rem;font-weight:500;color:var(--blue);background:#eff6ff;padding:2px 8px;border-radius:9999px;margin-left:8px}
+/* KPI cards */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
+.kpi-card{background:var(--white);border-radius:12px;padding:18px 14px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.kpi-border-blue{border-top:3px solid var(--blue)}
+.kpi-border-green{border-top:3px solid var(--green)}
+.kpi-border-amber{border-top:3px solid var(--amber)}
+.kpi-border-purple{border-top:3px solid var(--purple)}
+.kpi-border-red{border-top:3px solid var(--red)}
+.kpi-label{font-size:0.7rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.kpi-sub{font-size:0.65rem;color:var(--muted);margin-top:2px}
+.kpi-val{font-size:1.5rem;font-weight:700;line-height:1.1}
+.kpi-val2{font-size:1rem;font-weight:600;color:var(--muted);margin-top:4px}
+.kpi-wow{margin-top:5px;font-size:0.78rem}
+.wow-g{color:var(--green);font-weight:600}
+.wow-b{color:var(--red);font-weight:600}
+.wow-n{color:var(--muted)}
+/* Charts */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+.chart-card{background:var(--white);border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.chart-full{background:var(--white);border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:24px}
+/* Tables */
+.tbl-wrap{overflow-x:auto;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:20px}
+table{width:100%;border-collapse:collapse;background:var(--white);font-size:0.82rem;min-width:900px}
+thead tr{background:var(--navy);color:#fff}
+th{padding:11px 12px;text-align:left;font-weight:600;font-size:0.76rem;cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{background:var(--navy2)}
+th::after{content:' ⇅';opacity:.4;font-size:0.7rem}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f1f5f9}
+.bar{height:3px;border-radius:2px;margin:3px 0}
+/* Filters */
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filter-row label{font-size:0.8rem;color:var(--muted);font-weight:500}
+.filter-row input,.filter-row select{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.82rem;background:var(--white)}
+.section-toggle{display:flex;gap:8px;margin-bottom:16px}
+.toggle-btn{padding:5px 14px;border:1px solid var(--border);border-radius:9999px;font-size:0.8rem;cursor:pointer;background:var(--white);color:var(--muted);transition:all .2s}
+.toggle-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+/* Note */
+.note{font-size:0.78rem;color:var(--muted);background:#f1f5f9;border-radius:6px;padding:8px 12px;margin-bottom:14px;border-left:3px solid var(--blue)}
+/* 3-col comparison grid */
+.compare-grid{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;margin-bottom:28px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.compare-grid>div{background:var(--white);padding:12px 14px;font-size:0.84rem}
+.cmp-header{background:var(--navy)!important;color:#fff;font-weight:700;font-size:0.78rem;text-align:center;line-height:1.4}
+.cmp-header small{opacity:.7;font-weight:400}
+.cmp-label{font-weight:600;color:var(--navy);font-size:0.82rem;display:flex;align-items:center;gap:6px;background:#f8fafc!important}
+.cmp-val{font-weight:700;font-size:1.2rem;color:var(--navy);text-align:right}
+.cmp-badge{text-align:center;font-size:0.82rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.cmp-prog{font-size:0.8rem;color:var(--blue);font-weight:600;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+/* Insights */
+.insights-row{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.insight-card{background:var(--white);border-radius:10px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;gap:14px;align-items:flex-start}
+.insight-icon{font-size:1.4rem;flex-shrink:0;margin-top:2px}
+.insight-body{flex:1}
+.insight-title{font-weight:700;font-size:0.88rem;color:var(--navy);margin-bottom:3px}
+.insight-detail{font-size:0.8rem;color:var(--muted);margin-bottom:4px}
+.insight-action{font-size:0.82rem;color:var(--blue);font-weight:600}
+/* Budget progress bar */
+.budget-bar-wrap{background:#e2e8f0;border-radius:9999px;height:12px;margin:6px 0;overflow:hidden}
+.budget-bar{height:100%;border-radius:9999px;background:linear-gradient(90deg,var(--blue),var(--green))}
+/* Campaign history table */
+.hist-table{width:100%;border-collapse:collapse;font-size:0.83rem;min-width:700px}
+.hist-table thead tr{background:var(--navy);color:#fff}
+.hist-table th{padding:10px 14px;text-align:left;font-weight:600;font-size:0.76rem}
+.hist-table td{padding:10px 14px;border-bottom:1px solid var(--border)}
+.hist-table tr:hover td{background:#f1f5f9}
+.badge-ended{background:#dcfce7;color:#166534;padding:2px 8px;border-radius:9999px;font-size:0.72rem;font-weight:600}
+.badge-inprog{background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:9999px;font-size:0.72rem;font-weight:600}
+@media(max-width:768px){.charts-row{grid-template-columns:1fr};.kpi-val{font-size:1.2rem};.compare-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>📊 Weekly Paid Ads Performance Dashboard</h1>
+    <div class="header-sub">Last week: Mar 27 – Apr 02, 2026  ·  Full campaign: Mar 6 – Apr 02, 2026  ·  Updated: April 06, 2026</div>
+  </div>
+</header>
+<nav>
+  <a href="#overview">Overview</a>
+  <a href="#channel">By Channel</a>
+  <a href="#country">By Country</a>
+  <a href="#campaign">By Campaign</a>
+  <a href="#users">Users</a>
+  <a href="#budget">Budget</a>
+  <a href="#history">Campaign History</a>
+</nav>
+<main>
+
+<!-- ══ 1. OVERVIEW ══════════════════════════════════════════════════════════ -->
+<section id="overview">
+  <h2>📈 Overview <span class="period-tag">Last Week vs Prev Week vs Campaign</span></h2>
+  <div class="note">Green ▲ = improving vs reference  ·  Red ▼ = worsening  ·  % of campaign = share of cumulative total (spend / installs / users)</div>
+
+  <!-- Key Findings -->
+  <h3 style="font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:10px;margin-top:0">🔍 Key Findings &amp; Next Actions <span style="font-size:0.72rem;font-weight:400;color:var(--muted)">(auto-detected · top 3 signals)</span></h3>
+  <div class="insights-row">
+    
+    <div class="insight-card">
+      <div class="insight-icon">📍</div>
+      <div class="insight-body">
+        <div class="insight-title">Colombia lowest CPA this week at $0.08</div>
+        <div class="insight-detail">Most cost-efficient market for paid user acquisition this week.</div>
+        <div class="insight-action">→ Consider shifting budget toward Colombia if capacity allows.</div>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">🟢</div>
+      <div class="insight-body">
+        <div class="insight-title">D1 retention 7.5% — above campaign avg (6.5%)</div>
+        <div class="insight-detail">Improved onboarding quality this week.</div>
+        <div class="insight-action">→ Document what changed in creatives/targeting and replicate.</div>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">🔴</div>
+      <div class="insight-body">
+        <div class="insight-title">eCPI rose 11% above campaign avg</div>
+        <div class="insight-detail">This week $0.09 vs campaign avg $0.08.</div>
+        <div class="insight-action">→ Pause or reduce budget on campaigns with eCPI > campaign avg × 1.5.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3-column comparison table -->
+  <div class="compare-grid">
+    <div class="cmp-header"></div>
+    <div class="cmp-header cmp-wk">Last Week<br><small>Mar 27 – Apr 02, 2026</small></div>
+    <div class="cmp-header cmp-prev">vs Prev Week<br><small>Mar 19–26</small></div>
+    <div class="cmp-header cmp-cp">Full Campaign<br><small>Mar 6 – Apr 02, 2026</small></div>
+
+    <div class="cmp-label">💰 Ad Spend</div>
+    <div class="cmp-val cmp-wk">$912.11</div>
+    <div class="cmp-badge"><span class="wow-b">▲ +3.3%</span></div>
+    <div class="cmp-prog">28.6% of campaign total<br><small style="color:#94a3b8">$3,186.94</small></div>
+
+    <div class="cmp-label">📦 Installs</div>
+    <div class="cmp-val cmp-wk">10,610</div>
+    <div class="cmp-badge"><span class="wow-g">▲ +9.1%</span></div>
+    <div class="cmp-prog">25.7% of campaign total<br><small style="color:#94a3b8">41,294</small></div>
+
+    <div class="cmp-label">📉 Blended eCPI</div>
+    <div class="cmp-val cmp-wk">$0.09</div>
+    <div class="cmp-badge"><span class="wow-g">▼ -5.3%</span></div>
+    <div class="cmp-badge"><span class="wow-b">▲ +11.4%</span><br><small style="color:#94a3b8">campaign: $0.08</small></div>
+
+    <div class="cmp-label">👥 Users (report)</div>
+    <div class="cmp-val cmp-wk">7,170</div>
+    <div class="cmp-badge"><span class="wow-g">▲ +1.1%</span></div>
+    <div class="cmp-prog">30.4% of campaign total<br><small style="color:#94a3b8">23,619</small></div>
+
+    <div class="cmp-label">💸 CPA</div>
+    <div class="cmp-val cmp-wk">$0.13</div>
+    <div class="cmp-badge"><span class="wow-b">▲ +2.2%</span></div>
+    <div class="cmp-badge"><span class="wow-g">▼ -5.7%</span><br><small style="color:#94a3b8">campaign: $0.13</small></div>
+
+    <div class="cmp-label">🔁 D1 Retention</div>
+    <div class="cmp-val cmp-wk">7.5%</div>
+    <div class="cmp-badge" style="color:#94a3b8;font-size:0.75rem">N/A (no prev week file)</div>
+    <div class="cmp-badge"><span class="wow-g">▲ +14.7%</span><br><small style="color:#94a3b8">campaign: 6.5%</small></div>
+
+    <div class="cmp-label">🔁 D3 Retention</div>
+    <div class="cmp-val cmp-wk">2.7%</div>
+    <div class="cmp-badge" style="color:#94a3b8;font-size:0.75rem">N/A</div>
+    <div class="cmp-badge"><span class="wow-g">▲ +3.4%</span><br><small style="color:#94a3b8">campaign: 2.6%</small></div>
+
+    <div class="cmp-label">🔁 D7 Retention</div>
+    <div class="cmp-val cmp-wk">1.0%</div>
+    <div class="cmp-badge" style="color:#94a3b8;font-size:0.75rem">N/A</div>
+    <div class="cmp-badge"><span class="wow-b">▼ -29.7%</span><br><small style="color:#94a3b8">campaign: 1.4%</small></div>
+  </div>
+
+  <!-- Spend & Installs by channel -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Spend by Channel (Last Week)</h3>
+      <canvas id="chSpend" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Installs by Channel (Last Week)</h3>
+      <canvas id="chInstalls" height="120"></canvas>
+    </div>
+  </div>
+
+  <!-- Trend line chart -->
+  <div class="chart-full">
+    <h3>Weekly Trend — Avg eCPI &amp; Total Ad Spend (6 weeks)</h3>
+    <canvas id="trendChart" height="90"></canvas>
+  </div>
+</section>
+
+<!-- ══ 2. BY CHANNEL ════════════════════════════════════════════════════════ -->
+<section id="channel">
+  <h2>📡 Performance by Channel</h2>
+  <div class="note">CPA not shown by channel — the Daily User Report does not contain channel attribution. CPA is only available by Country. | * = N/A</div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Total Spend by Channel — Full Campaign</h3>
+      <canvas id="chPie" height="140"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Installs by Channel (Last Week)</h3>
+      <canvas id="chInstBar" height="140"></canvas>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <label>Filter:</label>
+    <input type="text" id="chFilter" placeholder="Type to filter..." oninput="filterTable('chTable',this.value)">
+    <label>Sort by:</label>
+    <select onchange="sortTableByCol('chTable', this.value)">
+      <option value="2">Spend</option>
+      <option value="3">Installs</option>
+      <option value="4">eCPI</option>
+      <option value="8">D1 Retention</option>
+    </select>
+  </div>
+
+  <div class="tbl-wrap">
+    <table id="chTable">
+      <thead><tr>
+        <th onclick="sortTable(this)">Channel</th>
+        <th onclick="sortTable(this)">Spend</th>
+        <th onclick="sortTable(this)">Installs</th>
+        <th onclick="sortTable(this)">eCPI</th>
+        <th onclick="sortTable(this)">Users (mode)</th>
+        <th onclick="sortTable(this)">CPA</th>
+        <th onclick="sortTable(this)">Install→Launch</th>
+        <th onclick="sortTable(this)">Install→User</th>
+        <th onclick="sortTable(this)">D1 Ret</th>
+        <th onclick="sortTable(this)">D3 Ret</th>
+        <th onclick="sortTable(this)">D7 Ret</th>
+      </tr></thead>
+      <tbody>
+        
+        <tr>
+          <td><strong>Google Ads</strong><br><small style="color:#64748b">Last week (Mar 27 – Apr 02, 2026)</small></td>
+          <td>$736.07<br><div class="bar" style="width:81%;background:#3b82f6"></div><small style="color:#64748b">80.7% of total</small></td>
+          <td>6,334</td>
+          <td>$0.12</td>
+          <td>2,741</td>
+          <td><span style="color:#94a3b8;font-size:0.8em">N/A*</span></td>
+          <td>95.3%</td>
+          <td>43.3%</td>
+          <td><span style="color:#22c55e;font-weight:600">7.6%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">2.6%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.0%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Facebook</strong><br><small style="color:#64748b">Last week (Mar 27 – Apr 02, 2026)</small></td>
+          <td>$127.82<br><div class="bar" style="width:14%;background:#3b82f6"></div><small style="color:#64748b">14.0% of total</small></td>
+          <td>1,071</td>
+          <td>$0.12</td>
+          <td>562</td>
+          <td><span style="color:#94a3b8;font-size:0.8em">N/A*</span></td>
+          <td>92.7%</td>
+          <td>52.5%</td>
+          <td><span style="color:#22c55e;font-weight:600">8.8%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">4.3%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">0.5%</span></td>
+        </tr>
+        <tr>
+          <td><strong>TikTok for Business</strong><br><small style="color:#64748b">Last week (Mar 27 – Apr 02, 2026)</small></td>
+          <td>$48.22<br><div class="bar" style="width:5%;background:#3b82f6"></div><small style="color:#64748b">5.3% of total</small></td>
+          <td>624</td>
+          <td>$0.08</td>
+          <td>242</td>
+          <td><span style="color:#94a3b8;font-size:0.8em">N/A*</span></td>
+          <td>70.7%</td>
+          <td>38.8%</td>
+          <td><span style="color:#22c55e;font-weight:600">7.0%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">2.6%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">2.2%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Organic</strong><br><small style="color:#64748b">Last week (Mar 27 – Apr 02, 2026)</small></td>
+          <td>$0.00<br><div class="bar" style="width:0%;background:#3b82f6"></div><small style="color:#64748b">0.0% of total</small></td>
+          <td>2,581</td>
+          <td>$0.00</td>
+          <td>1,275</td>
+          <td><span style="color:#94a3b8;font-size:0.8em">N/A*</span></td>
+          <td>92.3%</td>
+          <td>49.4%</td>
+          <td><span style="color:#22c55e;font-weight:600">6.7%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">2.4%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">0.7%</span></td>
+        </tr>
+        <tr style="background:#f1f5f9"><td colspan="11" style="text-align:center;font-weight:600;color:#1e293b;padding:8px">── Full Campaign (Mar 6 – Apr 02, 2026) ──</td></tr>
+        
+        <tr>
+          <td><strong>Google Ads</strong><br><small style="color:#64748b">Campaign (Mar 6 – Apr 02, 2026)</small></td>
+          <td>$2,251.44<br><div class="bar" style="width:71%;background:#3b82f6"></div><small style="color:#64748b">70.6% of total</small></td>
+          <td>20,754</td>
+          <td>$0.11</td>
+          <td>9,018</td>
+          <td><span style="color:#94a3b8;font-size:0.8em">N/A*</span></td>
+          <td>95.3%</td>
+          <td>43.5%</td>
+          <td><span style="color:#22c55e;font-weight:600">7.2%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">2.8%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.4%</span></td>
+        </tr>
+        <tr>
+          <td><strong>TikTok for Business</strong><br><small style="color:#64748b">Campaign (Mar 6 – Apr 02, 2026)</small></td>
+          <td>$552.93<br><div class="bar" style="width:17%;background:#3b82f6"></div><small style="color:#64748b">17.3% of total</small></td>
+          <td>8,146</td>
+          <td>$0.07</td>
+          <td>1,344</td>
+          <td><span style="color:#94a3b8;font-size:0.8em">N/A*</span></td>
+          <td>70.7%</td>
+          <td>16.5%</td>
+          <td><span style="color:#f59e0b;font-weight:600">3.4%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.3%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">0.7%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Facebook</strong><br><small style="color:#64748b">Campaign (Mar 6 – Apr 02, 2026)</small></td>
+          <td>$382.58<br><div class="bar" style="width:12%;background:#3b82f6"></div><small style="color:#64748b">12.0% of total</small></td>
+          <td>2,451</td>
+          <td>$0.16</td>
+          <td>1,351</td>
+          <td><span style="color:#94a3b8;font-size:0.8em">N/A*</span></td>
+          <td>92.7%</td>
+          <td>55.1%</td>
+          <td><span style="color:#22c55e;font-weight:600">8.6%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">3.7%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.5%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Organic</strong><br><small style="color:#64748b">Campaign (Mar 6 – Apr 02, 2026)</small></td>
+          <td>$0.00<br><div class="bar" style="width:0%;background:#3b82f6"></div><small style="color:#64748b">0.0% of total</small></td>
+          <td>9,943</td>
+          <td>$0.00</td>
+          <td>5,535</td>
+          <td><span style="color:#94a3b8;font-size:0.8em">N/A*</span></td>
+          <td>92.3%</td>
+          <td>55.7%</td>
+          <td><span style="color:#22c55e;font-weight:600">7.2%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">3.1%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.9%</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 3. BY COUNTRY ════════════════════════════════════════════════════════ -->
+<section id="country">
+  <h2>🌍 Performance by Country</h2>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Spend by Country (Last Week)</h3>
+      <canvas id="coSpend" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Installs by Country (Last Week)</h3>
+      <canvas id="coInstalls" height="120"></canvas>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <label>Filter:</label>
+    <input type="text" id="coFilter" placeholder="Type to filter..." oninput="filterTable('coTable',this.value)">
+    <label>Sort by:</label>
+    <select onchange="sortTableByCol('coTable', this.value)">
+      <option value="2">Spend</option>
+      <option value="3">Installs</option>
+      <option value="4">eCPI</option>
+      <option value="6">CPA</option>
+      <option value="8">D1 Retention</option>
+    </select>
+  </div>
+
+  <div class="tbl-wrap">
+    <table id="coTable">
+      <thead><tr>
+        <th onclick="sortTable(this)">Country</th>
+        <th onclick="sortTable(this)">Spend</th>
+        <th onclick="sortTable(this)">Installs</th>
+        <th onclick="sortTable(this)">eCPI</th>
+        <th onclick="sortTable(this)">Users (mode)</th>
+        <th onclick="sortTable(this)">Users (report)</th>
+        <th onclick="sortTable(this)">CPA</th>
+        <th onclick="sortTable(this)">Install→User</th>
+        <th onclick="sortTable(this)">D1 Ret</th>
+        <th onclick="sortTable(this)">D3 Ret</th>
+        <th onclick="sortTable(this)">D7 Ret</th>
+      </tr></thead>
+      <tbody>
+        
+        <tr>
+          <td><strong>Colombia</strong><br><small style="color:#64748b">Last week (Mar 27 – Apr 02, 2026)</small></td>
+          <td>$235.06</td>
+          <td>3,736</td>
+          <td>$0.06</td>
+          <td>1,733</td>
+          <td>2,933</td>
+          <td>$0.08</td>
+          <td>46.4%</td>
+          <td><span style="color:#22c55e;font-weight:600">8.6%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">3.1%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">0.7%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Argentina</strong><br><small style="color:#64748b">Last week (Mar 27 – Apr 02, 2026)</small></td>
+          <td>$239.23</td>
+          <td>3,046</td>
+          <td>$0.08</td>
+          <td>1,306</td>
+          <td>2,137</td>
+          <td>$0.11</td>
+          <td>42.9%</td>
+          <td><span style="color:#22c55e;font-weight:600">7.0%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">2.8%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.1%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Viet Nam</strong><br><small style="color:#64748b">Last week (Mar 27 – Apr 02, 2026)</small></td>
+          <td>$226.41</td>
+          <td>1,609</td>
+          <td>$0.14</td>
+          <td>630</td>
+          <td>922</td>
+          <td>$0.25</td>
+          <td>39.2%</td>
+          <td><span style="color:#22c55e;font-weight:600">6.1%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.7%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">0.8%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Brazil</strong><br><small style="color:#64748b">Last week (Mar 27 – Apr 02, 2026)</small></td>
+          <td>$120.37</td>
+          <td>829</td>
+          <td>$0.15</td>
+          <td>343</td>
+          <td>550</td>
+          <td>$0.22</td>
+          <td>41.4%</td>
+          <td><span style="color:#22c55e;font-weight:600">5.6%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.9%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.4%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Spain</strong><br><small style="color:#64748b">Last week (Mar 27 – Apr 02, 2026)</small></td>
+          <td>$84.97</td>
+          <td>994</td>
+          <td>$0.09</td>
+          <td>527</td>
+          <td>628</td>
+          <td>$0.14</td>
+          <td>53.0%</td>
+          <td><span style="color:#22c55e;font-weight:600">8.5%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">3.0%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.4%</span></td>
+        </tr>
+        <tr style="background:#f1f5f9"><td colspan="11" style="text-align:center;font-weight:600;color:#1e293b;padding:8px">── Full Campaign (Mar 6 – Apr 02, 2026) ──</td></tr>
+        
+        <tr>
+          <td><strong>Colombia</strong><br><small style="color:#64748b">Campaign (Mar 6 – Apr 02, 2026)</small></td>
+          <td>$709.94</td>
+          <td>11,118</td>
+          <td>$0.06</td>
+          <td>5,280</td>
+          <td>8,230</td>
+          <td>$0.09</td>
+          <td>47.5%</td>
+          <td><span style="color:#22c55e;font-weight:600">8.1%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">3.3%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.5%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Argentina</strong><br><small style="color:#64748b">Campaign (Mar 6 – Apr 02, 2026)</small></td>
+          <td>$696.59</td>
+          <td>9,369</td>
+          <td>$0.07</td>
+          <td>4,075</td>
+          <td>6,463</td>
+          <td>$0.11</td>
+          <td>43.5%</td>
+          <td><span style="color:#22c55e;font-weight:600">6.9%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">2.8%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.3%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Viet Nam</strong><br><small style="color:#64748b">Campaign (Mar 6 – Apr 02, 2026)</small></td>
+          <td>$1,194.78</td>
+          <td>13,578</td>
+          <td>$0.09</td>
+          <td>3,483</td>
+          <td>5,117</td>
+          <td>$0.23</td>
+          <td>25.7%</td>
+          <td><span style="color:#f59e0b;font-weight:600">4.2%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.8%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.1%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Brazil</strong><br><small style="color:#64748b">Campaign (Mar 6 – Apr 02, 2026)</small></td>
+          <td>$390.89</td>
+          <td>3,058</td>
+          <td>$0.13</td>
+          <td>1,271</td>
+          <td>1,855</td>
+          <td>$0.21</td>
+          <td>41.6%</td>
+          <td><span style="color:#22c55e;font-weight:600">5.2%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">1.9%</span></td>
+          <td><span style="color:#ef4444;font-weight:600">0.9%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Spain</strong><br><small style="color:#64748b">Campaign (Mar 6 – Apr 02, 2026)</small></td>
+          <td>$222.85</td>
+          <td>2,760</td>
+          <td>$0.08</td>
+          <td>1,643</td>
+          <td>1,954</td>
+          <td>$0.11</td>
+          <td>59.5%</td>
+          <td><span style="color:#22c55e;font-weight:600">8.8%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">3.1%</span></td>
+          <td><span style="color:#f59e0b;font-weight:600">2.0%</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 4. BY CAMPAIGN ═══════════════════════════════════════════════════════ -->
+<section id="campaign">
+  <h2>🎯 Campaign Detail</h2>
+  <div class="note">
+    Rows highlighted amber = eCPI &gt; 1.5× average ($0.078). CPA shown as Spend÷Mode_Select (no user report attribution at campaign level). Click column headers to sort.
+  </div>
+
+  <div class="filter-row">
+    <label>Filter:</label>
+    <input type="text" id="campFilter" placeholder="Type channel or campaign name..." oninput="filterTable('campTable',this.value)">
+    <label>Channel:</label>
+    <select onchange="filterByChannel(this.value)">
+      <option value="">All channels</option>
+      <option>Google Ads</option>
+      <option>TikTok for Business</option>
+      <option>Facebook</option>
+      <option>Organic</option>
+    </select>
+    <label>Sort by:</label>
+    <select onchange="sortTableByCol('campTable', this.value)">
+      <option value="2">Spend</option>
+      <option value="3">Installs</option>
+      <option value="4">eCPI</option>
+      <option value="6">Launch %</option>
+      <option value="7">User %</option>
+      <option value="9">D1 Ret</option>
+    </select>
+  </div>
+
+  <div class="tbl-wrap">
+    <table id="campTable">
+      <thead><tr>
+        <th onclick="sortTable(this)">Channel</th>
+        <th onclick="sortTable(this)">Campaign</th>
+        <th onclick="sortTable(this)">Spend</th>
+        <th onclick="sortTable(this)">Installs</th>
+        <th onclick="sortTable(this)">eCPI</th>
+        <th onclick="sortTable(this)">CPA</th>
+        <th onclick="sortTable(this)">Install→Launch</th>
+        <th onclick="sortTable(this)">Install→User</th>
+        <th onclick="sortTable(this)">Install→Record</th>
+        <th onclick="sortTable(this)">D1 Ret</th>
+        <th onclick="sortTable(this)">D3 Ret</th>
+        <th onclick="sortTable(this)">D7 Ret</th>
+      </tr></thead>
+      <tbody>
+    <tr>
+      <td>Google Ads</td>
+      <td>[ES] Argentina</td>
+      <td>$486.32</td>
+      <td>7,533</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.065</span></td>
+      <td>$0.15</td>
+      <td>96.7%</td>
+      <td>43.2%</td>
+      <td>28.6%</td>
+      <td><span style="color:#ef4444;font-weight:600">6.8%</span></td>
+      <td><span style="color:#ef4444;font-weight:600">2.6%</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Google Ads</td>
+      <td>[PT] Brazil</td>
+      <td>$397.37</td>
+      <td>3,319</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.120</span></td>
+      <td>$0.29</td>
+      <td>96.0%</td>
+      <td>42.0%</td>
+      <td>37.9%</td>
+      <td><span style="color:#ef4444;font-weight:600">5.1%</span></td>
+      <td><span style="color:#ef4444;font-weight:600">2.0%</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Google Ads</td>
+      <td>[ES] Columbia</td>
+      <td>$273.96</td>
+      <td>4,589</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.060</span></td>
+      <td>$0.19</td>
+      <td>97.4%</td>
+      <td>31.8%</td>
+      <td>24.3%</td>
+      <td><span style="color:#ef4444;font-weight:600">8.0%</span></td>
+      <td><span style="color:#ef4444;font-weight:600">1.9%</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Google Ads</td>
+      <td>[VN] Ori Agency Campaign</td>
+      <td>$261.81</td>
+      <td>2,167</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.121</span></td>
+      <td>$0.27</td>
+      <td>89.4%</td>
+      <td>44.8%</td>
+      <td>38.2%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>TikTok for Business</td>
+      <td>Social Challenge - VI</td>
+      <td>$197.71</td>
+      <td>2,771</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.071</span></td>
+      <td>$0.57</td>
+      <td>65.3%</td>
+      <td>12.6%</td>
+      <td>8.9%</td>
+      <td><span style="color:#ef4444;font-weight:600">6.3%</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Google Ads</td>
+      <td>[VN] Vietnam Agency</td>
+      <td>$185.93</td>
+      <td>1,231</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.151</span></td>
+      <td>$0.37</td>
+      <td>87.7%</td>
+      <td>40.5%</td>
+      <td>26.7%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Facebook</td>
+      <td>Social Challenge - New users</td>
+      <td>$175.64</td>
+      <td>817</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.215</span></td>
+      <td>$0.37</td>
+      <td>88.7%</td>
+      <td>58.4%</td>
+      <td>40.1%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Google Ads</td>
+      <td>[ES] Spain</td>
+      <td>$151.75</td>
+      <td>1,668</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.091</span></td>
+      <td>$0.17</td>
+      <td>98.5%</td>
+      <td>54.0%</td>
+      <td>43.3%</td>
+      <td><span style="color:#ef4444;font-weight:600">8.2%</span></td>
+      <td><span style="color:#22c55e;font-weight:600">3.9%</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>TikTok for Business</td>
+      <td>Social Challenge - Latam</td>
+      <td>$107.40</td>
+      <td>955</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.112</span></td>
+      <td>$0.24</td>
+      <td>92.3%</td>
+      <td>47.0%</td>
+      <td>38.6%</td>
+      <td><span style="color:#ef4444;font-weight:600">6.6%</span></td>
+      <td><span style="color:#ef4444;font-weight:600">2.4%</span></td>
+      <td><span style="color:#ef4444;font-weight:600">1.7%</span></td>
+    </tr>
+    <tr>
+      <td>Facebook</td>
+      <td>Social Challenge - New users - ES</td>
+      <td>$102.27</td>
+      <td>906</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.113</span></td>
+      <td>$0.13</td>
+      <td>96.6%</td>
+      <td>86.4%</td>
+      <td>48.1%</td>
+      <td><span style="color:#ef4444;font-weight:600">7.6%</span></td>
+      <td><span style="color:#22c55e;font-weight:600">4.3%</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Google Ads</td>
+      <td>Agency VN team</td>
+      <td>$102.05</td>
+      <td>909</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.112</span></td>
+      <td>$0.25</td>
+      <td>90.0%</td>
+      <td>44.1%</td>
+      <td>43.7%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Google Ads</td>
+      <td>AI Avatar_ Nhóm 2_android _FO</td>
+      <td>$47.09</td>
+      <td>0</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>TikTok for Business</td>
+      <td>VN - App Download - Smart+ campaign</td>
+      <td>$45.61</td>
+      <td>627</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.073</span></td>
+      <td>$1.17</td>
+      <td>61.9%</td>
+      <td>6.2%</td>
+      <td>2.9%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#22c55e;font-weight:600">7.1%</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Google Ads</td>
+      <td>AI Avatar_ Nhóm 2_android</td>
+      <td>$41.07</td>
+      <td>0</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Google Ads</td>
+      <td>[ES] Argentina #2 (New)</td>
+      <td>$20.94</td>
+      <td>106</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.198</span></td>
+      <td>$0.09</td>
+      <td>95.3%</td>
+      <td>213.2%</td>
+      <td>200.0%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Google Ads</td>
+      <td>[ES] Columbia #2 (New)</td>
+      <td>$20.91</td>
+      <td>118</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.177</span></td>
+      <td>$1.23</td>
+      <td>96.6%</td>
+      <td>14.4%</td>
+      <td>5.9%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Google Ads</td>
+      <td>[PT] Brazil #2 (New)</td>
+      <td>$20.88</td>
+      <td>54</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.387</span></td>
+      <td>$0.99</td>
+      <td>94.4%</td>
+      <td>38.9%</td>
+      <td>9.3%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Facebook</td>
+      <td>Retargeting User - Social Challenge  - User Data (v2)</td>
+      <td>$20.42</td>
+      <td>41</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.498</span></td>
+      <td>$0.97</td>
+      <td>85.4%</td>
+      <td>51.2%</td>
+      <td>24.4%</td>
+      <td><span style="color:#ef4444;font-weight:600">7.7%</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Google Ads</td>
+      <td>AI Avatar - Nhóm 3 - Android</td>
+      <td>$11.50</td>
+      <td>0</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Google Ads</td>
+      <td>[ES] Spain #2 (New)</td>
+      <td>$10.11</td>
+      <td>21</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.481</span></td>
+      <td>$1.01</td>
+      <td>100.0%</td>
+      <td>47.6%</td>
+      <td>23.8%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Facebook</td>
+      <td>Social Challenge - New users - VI</td>
+      <td>$6.85</td>
+      <td>89</td>
+      <td><span style="color:#f59e0b;font-weight:600">$0.077</span></td>
+      <td>$1.37</td>
+      <td>92.1%</td>
+      <td>5.6%</td>
+      <td>–</td>
+      <td><span style="color:#22c55e;font-weight:600">15.1%</span></td>
+      <td><span style="color:#22c55e;font-weight:600">14.3%</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr style="background:#fef3c7">
+      <td>Facebook</td>
+      <td>Social Challenge - New users – PT</td>
+      <td>$1.95</td>
+      <td>9</td>
+      <td><span style="color:#ef4444;font-weight:600">$0.217</span></td>
+      <td>$1.95</td>
+      <td>88.9%</td>
+      <td>11.1%</td>
+      <td>22.2%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>All region</td>
+      <td>$0.00</td>
+      <td>2,543</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>94.6%</td>
+      <td>69.1%</td>
+      <td>49.3%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Facebook</td>
+      <td>Parent campaign - Test 2 - BR + SP</td>
+      <td>$0.00</td>
+      <td>0</td>
+      <td>–</td>
+      <td>$0.00</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>app de ronaldinho</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>200.0%</td>
+      <td>100.0%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>app ronaldinho</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>apps de ronaldinho</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>100.0%</td>
+      <td>200.0%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>juego de fútbol recomendado para celular donde aparece ronaldinho gaucho</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>–</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>la app de ronaldinho</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>–</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>página r10 regates</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>100.0%</td>
+      <td>700.0%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>r10 playground</td>
+      <td>$0.00</td>
+      <td>3</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>33.3%</td>
+      <td>133.3%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>r10 ronaldinho aplicacion</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>–</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>r10 ronaldinho playground</td>
+      <td>$0.00</td>
+      <td>3</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>66.7%</td>
+      <td>66.7%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>r10playaraund</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>ronaldinho app</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>ronaldinho playground</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>–</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td>300.0%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>ronaldinho r10 app</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>100.0%</td>
+      <td>100.0%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>treino do r10 app</td>
+      <td>$0.00</td>
+      <td>0</td>
+      <td>–</td>
+      <td>$0.00</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>unknown</td>
+      <td>$0.00</td>
+      <td>4,080</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>90.9%</td>
+      <td>55.4%</td>
+      <td>39.9%</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>TikTok for Business</td>
+      <td>Social Challenge - Lookalike Spain</td>
+      <td>$0.00</td>
+      <td>0</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>instalar está joya r10 ronaldinho playground</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>$0.00</td>
+      <td>100.0%</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>r10 ronaldinho playground có tính phí không</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>–</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr>
+    <tr>
+      <td>Organic</td>
+      <td>игры про роналдиньо</td>
+      <td>$0.00</td>
+      <td>1</td>
+      <td><span style="color:#22c55e;font-weight:600">$0.000</span></td>
+      <td>–</td>
+      <td>100.0%</td>
+      <td>–</td>
+      <td>–</td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+      <td><span style="color:#94a3b8">–</span></td>
+    </tr></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 5. USERS ═════════════════════════════════════════════════════════════ -->
+<section id="users">
+  <h2>👥 User Registrations</h2>
+  <div class="note">Source: Daily User Report. Filtered: non-Test, non-Deleted users. Weekly = Mar 27 – Apr 02, 2026.</div>
+
+  <div class="kpi-row">
+    <div class="kpi-card kpi-border-green">
+      <div class="kpi-label">Weekly New Users</div>
+      <div class="kpi-val">7,170</div>
+      <div class="kpi-sub">5 main markets</div>
+    </div>
+    <div class="kpi-card kpi-border-blue">
+      <div class="kpi-label">Campaign Total Users</div>
+      <div class="kpi-val">23,619</div>
+      <div class="kpi-sub">Mar 6 – Apr 2</div>
+    </div>
+    <div class="kpi-card kpi-border-amber">
+      <div class="kpi-label">Top Country (weekly)</div>
+      <div class="kpi-val" style="font-size:1.1rem">Colombia</div>
+      <div class="kpi-sub">2,933 users</div>
+    </div>
+    <div class="kpi-card kpi-border-purple">
+      <div class="kpi-label">Weekly CPA (blended)</div>
+      <div class="kpi-val">$0.13</div>
+      <div class="kpi-sub">Total spend ÷ users</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Users by Country — Weekly vs Campaign</h3>
+      <canvas id="usersCountry" height="130"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>CPA by Country (Last Week)</h3>
+      <canvas id="cpaCountry" height="130"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. BUDGET SUMMARY ══════════════════════════════════════════════════ -->
+<section id="budget">
+  <h2>💳 Budget Summary <span class="period-tag">Oct 2025 – Jul 2026</span></h2>
+
+  <div class="kpi-row">
+    <div class="kpi-card kpi-border-blue">
+      <div class="kpi-label">Budget Approved 2025</div>
+      <div class="kpi-val">$15,480.00</div>
+      <div class="kpi-sub">PM/Req-2511-506, PM/Req-2512-937</div>
+    </div>
+    <div class="kpi-card kpi-border-green">
+      <div class="kpi-label">Budget Approved 2026</div>
+      <div class="kpi-val">$26,464.00</div>
+      <div class="kpi-sub">2026 budget request</div>
+    </div>
+    <div class="kpi-card kpi-border-amber">
+      <div class="kpi-label">Total Spent to Date</div>
+      <div class="kpi-val">$12,793.62</div>
+      <div class="kpi-sub">All 3 campaigns (excl. VAT)</div>
+    </div>
+    <div class="kpi-card kpi-border-red" style="border-top-color:#22c55e">
+      <div class="kpi-label">Remaining Budget</div>
+      <div class="kpi-val" style="color:#22c55e">$29,150.38</div>
+      <div class="kpi-sub">30.5% of total budget used</div>
+    </div>
+  </div>
+
+  <div class="chart-full" style="margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:0.82rem;font-weight:600;color:var(--navy)">Budget Utilisation — 30.5% used</span>
+      <span style="font-size:0.8rem;color:var(--muted)">$12,793.62 of $41,944.00</span>
+    </div>
+    <div class="budget-bar-wrap">
+      <div class="budget-bar" style="width:30.5%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px">
+      <span>$0</span><span style="color:var(--blue)">Remaining: $29,150.38</span><span>$41,944.00</span>
+    </div>
+  </div>
+
+  <div class="chart-full">
+    <h3>Spend by Campaign Period</h3>
+    <canvas id="budgetBar" height="70"></canvas>
+  </div>
+</section>
+
+<!-- ══ 7. CAMPAIGN HISTORY ════════════════════════════════════════════════ -->
+<section id="history">
+  <h2>📅 Campaign History <span class="period-tag">All 3 Campaigns</span></h2>
+  <div class="note">Comparing performance across all campaign periods. Users = paid registrations from Daily User Report (5 main markets).</div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Users per Campaign</h3>
+      <canvas id="histUsers" height="140"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>CPI &amp; CPA Trend</h3>
+      <canvas id="histCpiCpa" height="140"></canvas>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="hist-table">
+      <thead><tr>
+        <th>Campaign</th><th>Period</th><th>Registered Users</th>
+        <th>Installs</th><th>Budget</th><th>Spent</th>
+        <th>eCPI</th><th>CPA</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+        
+        <tr>
+          <td><strong>Campaign 1</strong></td>
+          <td style="color:var(--muted)">Oct 22–Dec 31, 2025</td>
+          <td>11,105</td>
+          <td>21,454</td>
+          <td>$6,000.00</td>
+          <td>$5,900.00</td>
+          <td>$0.28</td>
+          <td>$0.53</td>
+          <td><span class="badge-ended">✓ Ended</span></td>
+        </tr>
+        <tr>
+          <td><strong>Campaign 2</strong></td>
+          <td style="color:var(--muted)">Jan 1–Mar 5, 2026</td>
+          <td>21,138</td>
+          <td>36,273</td>
+          <td>$4,480.00</td>
+          <td>$3,706.68</td>
+          <td>$0.10</td>
+          <td>$0.18</td>
+          <td><span class="badge-ended">✓ Ended</span></td>
+        </tr>
+        <tr style="background:#eff6ff">
+          <td><strong>Campaign 3</strong></td>
+          <td style="color:var(--muted)">Mar 6–Apr 2, 2026</td>
+          <td><strong>23,619</strong></td>
+          <td><strong>41,294</strong></td>
+          <td>$5,000.00</td>
+          <td><strong>$3,186.94</strong></td>
+          <td><strong>$0.08</strong></td>
+          <td><strong>$0.13</strong></td>
+          <td><span class="badge-inprog">🔄 In Progress</span></td>
+        </tr>
+        <tr style="background:#f1f5f9;font-weight:700">
+          <td colspan="2">TOTAL (all campaigns)</td>
+          <td>55,862</td>
+          <td>99,021</td>
+          <td>$15,480.00</td>
+          <td>$12,793.62</td>
+          <td>$0.13</td>
+          <td>$0.23</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<script>
+// ── (period toggle removed — replaced by comparison grid) ──────────────────
+
+// ── Table sort ────────────────────────────────────────────────────────────
+function sortTable(th) {
+  const tbl = th.closest('table'), tbody = tbl.querySelector('tbody');
+  const rows = Array.from(tbody.rows).filter(r=>r.cells.length>2);
+  const col = Array.from(th.parentNode.cells).indexOf(th);
+  const asc = th.dataset.asc !== 'true'; th.dataset.asc = asc;
+  rows.sort((a,b)=>{
+    const av=a.cells[col]?.innerText.replace(/[$,%▲▼+\s]/g,'')||'';
+    const bv=b.cells[col]?.innerText.replace(/[$,%▲▼+\s]/g,'')||'';
+    const an=parseFloat(av.replace(/,/g,'')), bn=parseFloat(bv.replace(/,/g,''));
+    if(!isNaN(an)&&!isNaN(bn)) return asc?an-bn:bn-an;
+    return asc?av.localeCompare(bv):bv.localeCompare(av);
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+}
+
+function sortTableByCol(id, colIdx) {
+  const tbl = document.getElementById(id), tbody = tbl.querySelector('tbody');
+  const rows = Array.from(tbody.rows).filter(r=>r.cells.length>2);
+  const col = parseInt(colIdx);
+  rows.sort((a,b)=>{
+    const av=a.cells[col]?.innerText.replace(/[$,%▲▼+\s]/g,'')||'';
+    const bv=b.cells[col]?.innerText.replace(/[$,%▲▼+\s]/g,'')||'';
+    const an=parseFloat(av.replace(/,/g,'')), bn=parseFloat(bv.replace(/,/g,''));
+    return (isNaN(an)||isNaN(bn))?av.localeCompare(bv):bn-an;
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+}
+
+function filterTable(id, q) {
+  document.querySelectorAll(`#${id} tbody tr`).forEach(r=>{
+    const txt = r.innerText.toLowerCase();
+    r.style.display = txt.includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function filterByChannel(ch) {
+  document.querySelectorAll('#campTable tbody tr').forEach(r=>{
+    if(!ch) { r.style.display=''; return; }
+    const first = r.cells[0]?.innerText||'';
+    r.style.display = first.includes(ch)?'':'none';
+  });
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────
+const COLS = ['#3b82f6','#22c55e','#f59e0b','#a855f7','#ef4444','#06b6d4'];
+const COLS_A = COLS.map(c=>c+'cc');
+
+function bar(id,labels,datasets,opts={}){
+  new Chart(document.getElementById(id),{
+    type:'bar',
+    data:{labels,datasets},
+    options:{responsive:true,plugins:{legend:{display:datasets.length>1}},
+      scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}, ...opts}
+  });
+}
+
+function line(id,labels,datasets){
+  new Chart(document.getElementById(id),{
+    type:'line',
+    data:{labels,datasets},
+    options:{responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top'}},
+      scales:{
+        y:{type:'linear',position:'left',beginAtZero:true,title:{display:true,text:'Ad Spend (USD)'},grid:{color:'#f1f5f9'}},
+        y2:{type:'linear',position:'right',beginAtZero:true,title:{display:true,text:'eCPI / CPA (USD)'},grid:{drawOnChartArea:false}}
+      }
+    }
+  });
+}
+
+function pie(id,labels,data){
+  new Chart(document.getElementById(id),{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:COLS,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,plugins:{legend:{position:'right'}}}
+  });
+}
+
+// Overview channel charts
+bar('chSpend', ["Google Ads", "Facebook", "TikTok for Business", "Organic"], [{label:'Spend ($)',data:[736.07, 127.82, 48.22, 0],backgroundColor:COLS,borderRadius:6}]);
+bar('chInstalls', ["Google Ads", "Facebook", "TikTok for Business", "Organic"], [{label:'Installs',data:[6334, 1071, 624, 2581],backgroundColor:COLS,borderRadius:6}]);
+
+// Trend line chart
+line('trendChart', ["W3 Feb", "W1 Mar", "W2 Mar", "W3 Mar", "W4 Mar", "W1 Apr"], [
+  {label:'Ad Spend ($)',data:[1055.32, 1094.43, 655.66, 593.67, 883.14, 881.69],yAxisID:'y',borderColor:'#3b82f6',backgroundColor:'#3b82f620',fill:true,tension:.4},
+  {label:'eCPI ($)',data:[0.1154, 0.074, 0.0665, 0.0712, 0.0908, 0.0664],yAxisID:'y2',borderColor:'#f59e0b',tension:.4},
+  {label:'CPA ($)',data:[0.184, 0.1191, 0.155, 0.0913, 0.1245, 0.1446],yAxisID:'y2',borderColor:'#a855f7',tension:.4,borderDash:[5,3]}
+]);
+
+// Channel section
+pie('chPie', ["Google Ads", "TikTok for Business", "Facebook", "Organic"], [2251.44, 552.93, 382.58, 0]);
+bar('chInstBar', ["Google Ads", "Facebook", "TikTok for Business", "Organic"], [{label:'Installs',data:[6334, 1071, 624, 2581],backgroundColor:COLS,borderRadius:6}]);
+
+// Country charts
+bar('coSpend',    ["Argentina", "Colombia", "Viet Nam", "Brazil", "Spain"], [{label:'Spend ($)',   data:[239.23, 235.06, 226.41, 120.37, 84.97],   backgroundColor:'#3b82f6',borderRadius:6}]);
+bar('coInstalls', ["Argentina", "Colombia", "Viet Nam", "Brazil", "Spain"], [{label:'Installs',data:[3046, 3736, 1609, 829, 994],backgroundColor:'#22c55e',borderRadius:6}]);
+
+// User charts
+bar('usersCountry', ["Colombia", "Argentina", "Viet Nam", "Brazil", "Spain"], [
+  {label:'Weekly',  data:[2933, 2137, 922, 550, 628], backgroundColor:'#3b82f6',borderRadius:6},
+  {label:'Campaign',data:[8230, 6463, 5117, 1855, 1954],   backgroundColor:'#a855f7',borderRadius:6}
+]);
+
+const cpaCo = [0.08, 0.11, 0.25, 0.22, 0.14];
+bar('cpaCountry', ["Colombia", "Argentina", "Viet Nam", "Brazil", "Spain"], [{label:'CPA ($)',data:cpaCo,backgroundColor:'#f59e0b',borderRadius:6}]);
+
+// Budget bar
+bar('budgetBar',
+  ["Campaign 1", "Campaign 2", "Campaign 3"],
+  [{
+    label:'Spending (USD)',
+    data:[5900.0, 3706.68, 3186.94],
+    backgroundColor:['#22c55e','#22c55e','#3b82f6'],
+    borderRadius:6
+  },
+  {
+    label:'Budget (USD)',
+    data:[6000, 4480, 5000],
+    backgroundColor:'#e2e8f020',
+    borderColor:['#94a3b8','#94a3b8','#3b82f6'],
+    borderWidth:2,
+    type:'bar',
+    borderRadius:6
+  }]
+);
+
+// History charts
+bar('histUsers',
+  ["Campaign 1", "Campaign 2", "Campaign 3"],
+  [{label:'Registered Users',data:[11105, 21138, 23619],
+    backgroundColor:['#94a3b8','#94a3b8','#3b82f6'],borderRadius:6}]
+);
+line('histCpiCpa',
+  ["Campaign 1", "Campaign 2", "Campaign 3"],
+  [
+    {label:'eCPI ($)',data:[0.275, 0.1022, 0.0772],yAxisID:'y2',borderColor:'#f59e0b',tension:.4,pointRadius:6},
+    {label:'CPA ($)', data:[0.5313, 0.1754, 0.1349], yAxisID:'y2',borderColor:'#a855f7',tension:.4,borderDash:[5,3],pointRadius:6}
+  ]
+);
+</script>
+</body>
+</html>
